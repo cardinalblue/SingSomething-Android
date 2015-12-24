@@ -27,7 +27,7 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private void startFriendsList() {
-        Intent intent = new Intent(getApplicationContext(), OldFriendsListActivity.class);
+        Intent intent = new Intent(getApplicationContext(), FriendsListActivity.class);
         startActivity(intent);
         finish();
     }
