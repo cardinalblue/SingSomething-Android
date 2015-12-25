@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
@@ -9,19 +8,18 @@
     android:layout_marginStart="@dimen/activity_horizontal_margin"
     android:layout_marginEnd="@dimen/activity_horizontal_margin"
     android:gravity="center"
-    tools:context=".NewSongQuizActivity">
+    tools:context=".NewQuizActivity">
 
-    <include layout="@layout/song_option_item" />
-    <include layout="@layout/song_option_item" />
-    <include layout="@layout/song_option_item" />
 
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="24dp"/>
+    <include
+        android:id="@+id/song_opt_1"
+        layout="@layout/track_option_item" />
 
-    <Button
-        android:id="@+id/create_quiz"
-        android:layout_width="128dp"
-        android:layout_height="48dp"
-        android:text="@string/create_quiz"/>
+    <include
+        android:id="@+id/song_opt_2"
+        layout="@layout/track_option_item" />
+
+    <include
+        android:id="@+id/song_opt_3"
+        layout="@layout/track_option_item" />
 </LinearLayout>

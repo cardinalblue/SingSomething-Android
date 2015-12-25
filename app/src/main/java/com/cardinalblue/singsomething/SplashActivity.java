@@ -27,7 +27,7 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private void startFriendsList() {
-        Intent intent = new Intent(getApplicationContext(), FriendsListActivity.class);
+        Intent intent = new Intent(getApplicationContext(), NewQuizActivity.class);
         startActivity(intent);
         finish();
     }
