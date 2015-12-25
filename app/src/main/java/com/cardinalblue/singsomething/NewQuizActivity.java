@@ -15,6 +15,7 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.cardinalblue.singsomething.model.ITunesResponse;
 import com.cardinalblue.singsomething.model.SongTrack;
 import com.cardinalblue.singsomething.network.RequestManager;
@@ -40,11 +41,15 @@ import butterknife.OnClick;
 public class NewQuizActivity extends AppCompatActivity {
     private static final String LOG_TAG = NewQuizActivity.class.getSimpleName();
 
-    private static final List<String> ITUNES_SEARCH_TERMS =
-            Arrays.asList(new String[] {
-                    "韋禮安", "Maroon 5", "Katy Perry", "Aerosmith",
-                    "張震嶽", "徐佳瑩"
-            });
+    private static final List<String> ITUNES_SEARCH_TERMS = new ArrayList<>();
+    static {
+        ITUNES_SEARCH_TERMS.add("韋禮安");
+        ITUNES_SEARCH_TERMS.add("Maroon 5");
+        ITUNES_SEARCH_TERMS.add("Katy Perry");
+        ITUNES_SEARCH_TERMS.add("Aerosmith");
+        ITUNES_SEARCH_TERMS.add("徐佳瑩");
+        ITUNES_SEARCH_TERMS.add("Michael Jackson");
+    }
 
     @Bind(R.id.song_opt_1) View mTrackOpt1;
     @Bind(R.id.song_opt_2) View mTrackOpt2;
@@ -60,7 +65,20 @@ public class NewQuizActivity extends AppCompatActivity {
     private ImageButton mBtnTrackOpt2Playback;
     private ImageButton mBtnTrackOpt3Playback;
 
-    private final Handler mHandler = new MessageHandler();
+    public static final int MSG_UPDATE_SONGS = 0;
+    private final Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_UPDATE_SONGS:
+                    updateTrackOptions((ITunesResponse) msg.obj);
+                    updateTrackUI();
+                    break;
+                default:
+                    super.handleMessage(msg);
+            }
+        }
+    };
 
     private final ArrayList<SongTrack> mTrackOptions = new ArrayList<>();
 
@@ -141,8 +159,10 @@ public class NewQuizActivity extends AppCompatActivity {
                 if (i < 0) return;
                 String url = mTrackOptions.get(i).getPreviewUrl();
                 synchronized (mLock) {
-                    boolean start = !mIsPlaying && !url.equalsIgnoreCase(mCurrnetPlaying);
-                    onPlay(url, start);
+                    if (!url.equalsIgnoreCase(mCurrnetPlaying)) {
+                        stopPlaying();
+                    }
+                    onPlay(url, !mIsPlaying);
                 }
             }
         };
@@ -160,19 +180,17 @@ public class NewQuizActivity extends AppCompatActivity {
                     "https://itunes.apple.com/search?media=music&limit=24&term=%s",
                     term);
 
-            JsonObjectRequest jsonRequest = new JsonObjectRequest(
+            StringRequest request = new StringRequest(
                     Request.Method.GET,
                     iTunesUrl,
-                    new Response.Listener<JSONObject>() {
+                    new Response.Listener<String>() {
                         @Override
-                        public void onResponse(JSONObject object) {
+                        public void onResponse(String response) {
                             try {
                                 Message msg =
-                                        mHandler.obtainMessage(MessageHandler.MSG_UPDATE_SONGS);
+                                        mHandler.obtainMessage(MSG_UPDATE_SONGS);
                                 Gson gson = new GsonBuilder().create();
-                                ITunesResponse iTunesResponse =
-                                        gson.fromJson(object.toString(), ITunesResponse.class);
-                                msg.obj = iTunesResponse;
+                                msg.obj = gson.fromJson(response, ITunesResponse.class);
                                 mHandler.sendMessage(msg);
                             } catch (Exception e) {
                                 Log.e(LOG_TAG, "Cannot get response");
@@ -184,7 +202,7 @@ public class NewQuizActivity extends AppCompatActivity {
                         public void onErrorResponse(VolleyError error) {
                         }
                     });
-            RequestManager.getInstance(this).addToRequestQueue(jsonRequest);
+            RequestManager.getInstance(this).addToRequestQueue(request);
         } catch (Exception e) {
             Log.e(LOG_TAG, "Error on encoding url");
         }
@@ -251,21 +269,5 @@ public class NewQuizActivity extends AppCompatActivity {
             mPlayer = null;
         }
         mIsPlaying = false;
-    }
-
-    //--------------------------------------------------------------------------
-    class MessageHandler extends Handler {
-        public static final int MSG_UPDATE_SONGS = 0;
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case MSG_UPDATE_SONGS:
-                    updateTrackOptions((ITunesResponse) msg.obj);
-                    updateTrackUI();
-                    break;
-                default:
-                    super.handleMessage(msg);
-            }
-        }
     }
 }
